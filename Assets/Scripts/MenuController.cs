@@ -1,24 +1,26 @@
-using System.Collections;
-using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 #if UNITY_EDITOR
-       using UnityEditor;
+using UnityEditor;
 #endif
 
 [System.Serializable]
 public class PlayerData
 {
-    public string name;
-    public int score;
+    public string bestScoreName;
+    public int bestScore;
 }
 
 public class MenuController : MonoBehaviour
 {
     public static MenuController instance;
 
-    public string playerName;
+    public Text bestScoreText;
+    public string newPlayerName;
+    public string bestScoreName;
+    public int bestScore;
 
     private void Awake()
     {
@@ -30,18 +32,9 @@ public class MenuController : MonoBehaviour
 
         instance = this;
         DontDestroyOnLoad(gameObject);
-    }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        LoadGame();
+        bestScoreText.text = "Best Score: " + bestScoreName + " " + bestScore;
     }
 
     public void StartGame()
@@ -60,7 +53,30 @@ public class MenuController : MonoBehaviour
 
     public void GetPlayerName(string name)
     {
-        playerName = name;
-        Debug.Log(playerName);
+        newPlayerName = name;
+        Debug.Log(newPlayerName);
+    }
+
+    public void SaveGame()
+    {
+        PlayerData savedData = new PlayerData();
+        savedData.bestScoreName = bestScoreName;
+        savedData.bestScore = bestScore;
+
+        string json = JsonUtility.ToJson(savedData);
+        File.WriteAllText(Application.persistentDataPath + "/SaveData.json", json);
+    }
+
+    public void LoadGame()
+    {
+        string path = Application.persistentDataPath + "/SaveData.json";
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            PlayerData loadedData = JsonUtility.FromJson<PlayerData>(json);
+
+            bestScoreName = loadedData.bestScoreName;
+            bestScore = loadedData.bestScore;
+        }
     }
 }
